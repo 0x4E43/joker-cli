@@ -85,6 +85,6 @@ func (t *TLV) Encode() []byte {
 	binary.BigEndian.PutUint16(buf, t.Tag)
 	binary.BigEndian.PutUint16(buf[2:], t.Length)
 	copy(buf[4:], t.Value)
-	fmt.Println(buf)
+	// fmt.Println(buf)
 	return buf
 }

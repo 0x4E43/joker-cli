@@ -10,6 +10,8 @@ import (
 	"os"
 )
 
+//TODO: LATER to be made as CLI APP
+
 //ENCODER STARTS
 //  CMD    NO_OF_PARAM   DETAILS
 //  PUT    2             KEY VALUE

@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"encoding/binary"
 	"fmt"
+	"io"
+	"log"
 	"net"
+	"os"
 )
 
 //ENCODER STARTS
@@ -33,16 +37,41 @@ func main() {
 		panic(err)
 	}
 
-	tlv := TLV{
-		Tag:    uint16(1),
-		Length: uint16(len("Hello")),
-		Value:  []byte("Hello"),
+	remoteAdr := conn.RemoteAddr().String()
+	// keep the server open until client do exit
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Print(remoteAdr + "> ") //Printing the console text
+		// read the respnse from the server
+		// setting maximum 1024 buffer
+		// take input from scanner
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+		// fmt.Printf("read line: %s-\n", line)
+
+		tlv := TLV{
+			Tag:    uint16(1),
+			Length: uint16(len(line)),
+			Value:  []byte(line),
+		}
+
+		_, err = conn.Write(tlv.Encode())
+		if err != nil {
+			panic(nil)
+		}
+		buf := make([]byte, 1024)
+		_, err = conn.Read(buf)
+		if err != nil {
+			if err == io.EOF {
+				log.Panic("Server not abailable, Aborting")
+			}
+			log.Println(err)
+		}
+		fmt.Println(string(buf))
 	}
 
-	_, err = conn.Write(tlv.Encode())
-	if err != nil {
-		panic(nil)
-	}
 }
 
 type TLV struct {

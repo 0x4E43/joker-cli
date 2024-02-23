@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
 )
 
 //TODO: LATER to be made as CLI APP
@@ -52,11 +53,12 @@ func main() {
 			log.Fatal(err)
 		}
 		// fmt.Printf("read line: %s-\n", line)
-
+		// clean line variable, remove space and \n
+		line = cleanLine(line)
 		tlv := TLV{
-			Tag:    uint16(1),
+			Tag:    uint16(2),
 			Length: uint16(len(line)),
-			Value:  []byte(line),
+			Value:  []byte(line), //should be more than 3 character
 		}
 
 		_, err = conn.Write(tlv.Encode())
@@ -89,4 +91,15 @@ func (t *TLV) Encode() []byte {
 	copy(buf[4:], t.Value)
 	// fmt.Println(buf)
 	return buf
+}
+
+func cleanLine(line string) string {
+	// Remove leading and trailing whitespaces
+	cleanedLine := strings.TrimSpace(line)
+	// Remove newline characters
+	cleanedLine = strings.ReplaceAll(cleanedLine, "\n", "")
+	// Remove space characters
+	cleanedLine = strings.ReplaceAll(cleanedLine, " ", "")
+
+	return cleanedLine
 }

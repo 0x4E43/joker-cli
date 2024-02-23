@@ -9,9 +9,11 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 )
 
 //TODO: LATER to be made as CLI APP
+//TODO: OPTIMIZE reponse length
 
 //ENCODER STARTS
 //  CMD    NO_OF_PARAM   DETAILS
@@ -49,6 +51,7 @@ func main() {
 		// setting maximum 1024 buffer
 		// take input from scanner
 		line, err := reader.ReadString('\n')
+		now := time.Now()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,7 +76,17 @@ func main() {
 			}
 			log.Println(err)
 		}
-		fmt.Println(string(buf))
+
+		// decodingin the server response
+		resp, err := Decode(buf)
+		if err != nil {
+			log.Println(err)
+		}
+		if int(resp.Tag) != 0 {
+			fmt.Println("ERROR, ", string(resp.Value))
+		} else {
+			fmt.Println("OK, ", string(resp.Value), "TIME: ", time.Now().Sub(now))
+		}
 	}
 
 }
@@ -102,4 +115,29 @@ func cleanLine(line string) string {
 	cleanedLine = strings.ReplaceAll(cleanedLine, " ", "")
 
 	return cleanedLine
+}
+
+func Decode(data []byte) (*TLV, error) {
+	//four bit are reserved for Key, and length
+	if len(data) <= 5 {
+		return nil, fmt.Errorf("insufficient data")
+	}
+	cmd := binary.BigEndian.Uint16(data[:2])
+	length := binary.BigEndian.Uint16(data[2:4])
+
+	if len(data) < int(length)+4 {
+		return nil, fmt.Errorf("insufficient data for TLV value decoding")
+	}
+
+	// fmt.Println("DATA: ", data)
+	nData := data[4:]
+
+	// fmt.Println("DATA: ", nData, " CMD: ", cmd, " LENGTH: ", length)
+
+	tlv := TLV{
+		Tag:    cmd,
+		Length: length,
+		Value:  nData,
+	}
+	return &tlv, nil
 }
